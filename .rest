@@ -1,0 +1,7 @@
+GET http://localhost:3001/categories
+
+###
+GET http://localhost:3001/questions
+
+###
+GET http://localhost:3001/questions/category/4
