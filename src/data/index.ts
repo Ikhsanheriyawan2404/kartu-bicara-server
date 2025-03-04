@@ -1,13 +1,16 @@
-export const categories = [
+import { Category } from "../types/Category";
+import { Question } from "../types/Question";
+
+export const categories: Category[] = [
     // { id: 1, name: "siblings" },
     // { id: 2, name: "families" },
     { id: 3, name: "friends" },
     { id: 4, name: "couples" }
 ];
 
-let questionId = 1;
+let questionId: number = 1;
 
-const rawQuestions = [
+const rawQuestions: Question[] = [
     // { category_id: 1, text: "Apa kenangan masa kecil yang paling lucu bersama saudaramu?" },
     // { category_id: 1, text: "Siapa yang paling sering membuat masalah saat kecil?" },
     // { category_id: 1, text: "Apa kebiasaan unik yang dimiliki saudaramu?" },
@@ -71,4 +74,4 @@ const rawQuestions = [
     { "category_id": 4, "text": "Apa yang membuatmu yakin bahwa kita bisa melewati segala rintangan?" }
 ];
 
-export const questions = rawQuestions.map(q => ({ id: questionId++, ...q }));
+export const questions: Question[] = rawQuestions.map(q => ({ id: questionId++, ...q }));

@@ -1,11 +1,12 @@
 import { Room, Client } from "@colyseus/core";
-import { ArraySchema } from "@colyseus/schema";
 import { Player, Question, WordCardGameState } from "./schema/WordCardGameState";
 import { categories, questions } from "./../data";
 
 export class WordCardRoom extends Room<WordCardGameState> {
   public maxClients = 2;
   private maxQuestions = 10;
+  private categories = categories;
+  private questions = questions;
 
   onCreate (options: {
     name: string,
@@ -14,7 +15,7 @@ export class WordCardRoom extends Room<WordCardGameState> {
     this.setState(new WordCardGameState());
     
     this.addQuestions(options.categoryId);
-    this.setGameCategories(categories.find(category => category.id === options.categoryId)?.name);
+    this.setGameCategories(this.categories.find(category => category.id === options.categoryId)?.name);
 
     this.onMessage("answer", (client, message) => {
       this.handleAnswer(client, message);
@@ -53,12 +54,12 @@ export class WordCardRoom extends Room<WordCardGameState> {
   addQuestions(categoryId: number) {
     const tempData: {id: number, text: string, category: string}[] = [];
     
-    questions.forEach(question => {
-      const questionCategory = categories.find(category => category.id === question.category_id)?.name;
+    this.questions.forEach((question, key) => {
+      const questionCategory = this.categories.find(category => category.id === question.category_id)?.name;
   
       if (question.category_id === categoryId) {
         const data = {
-          id: question.id,
+          id: key,
           text: question.text,
           category: questionCategory
         };

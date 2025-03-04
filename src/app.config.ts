@@ -19,11 +19,11 @@ export default config({
     },
 
     initializeExpress: (app) => {
-        app.get("/categories", (req, res) => {
+        app.get("/categories", (_, res) => {
             res.json({ categories });
         });
         
-        app.get("/questions", (req, res) => {
+        app.get("/questions", (_, res) => {
             res.json({ questions });
         });
 
