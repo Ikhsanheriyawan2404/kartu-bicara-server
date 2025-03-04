@@ -1,6 +1,7 @@
 import { Room, Client } from "@colyseus/core";
-import { Player, Question, WordCardGameState } from "./schema/WordCardGameState";
+import { Category as SchemaCategory, Player, Question, WordCardGameState } from "./schema/WordCardGameState";
 import { categories, questions } from "./../data";
+import { Category } from "../types/Category";
 
 export class WordCardRoom extends Room<WordCardGameState> {
   public maxClients = 2;
@@ -12,10 +13,16 @@ export class WordCardRoom extends Room<WordCardGameState> {
     name: string,
     categoryId: number,
   }) {
+
+    const category: Category = this.categories.find(c => c.id === options.categoryId);
+    if (!category) {
+      throw new Error("Invalid category: You cannot join this room.");
+    }
+
     this.setState(new WordCardGameState());
     
-    this.addQuestions(options.categoryId);
-    this.setGameCategories(this.categories.find(category => category.id === options.categoryId)?.name);
+    this.addQuestions(category);
+    this.setGameCategories(category);
 
     this.onMessage("answer", (client, message) => {
       this.handleAnswer(client, message);
@@ -51,23 +58,16 @@ export class WordCardRoom extends Room<WordCardGameState> {
     }
   }
 
-  addQuestions(categoryId: number) {
-    const tempData: {id: number, text: string, category: string}[] = [];
-    
-    this.questions.forEach((question, key) => {
-      const questionCategory = this.categories.find(category => category.id === question.category_id)?.name;
-  
-      if (question.category_id === categoryId) {
-        const data = {
-          id: key,
-          text: question.text,
-          category: questionCategory
-        };
-        tempData.push(data);
-      }
-    });
-  
-    const randomData = this.getRandomQuestions(tempData, this.maxQuestions);
+  addQuestions(category: Category) {
+    const questions = this.questions
+      .filter(question => question.category_id === category.id)
+      .map((question, index) => ({
+        id: index,
+        text: question.text,
+        category: category.name
+      }));
+
+    const randomData = this.getRandomQuestions(questions, this.maxQuestions);
     randomData.forEach(data => {
       this.state.questions.push(new Question(data));
     });
@@ -78,8 +78,10 @@ export class WordCardRoom extends Room<WordCardGameState> {
     return shuffled.slice(0, n);
   }
 
-  setGameCategories(categoryName: string) {
-    this.state.currentCategory = categoryName
+  setGameCategories(category: Category) {
+    this.state.category = new SchemaCategory();
+    this.state.category.id = category.id;
+    this.state.category.name = category.name;
   }
 
   startGame() {
@@ -94,16 +96,27 @@ export class WordCardRoom extends Room<WordCardGameState> {
   }
 
   setNextTurn() {
-    const nextTurn = this.state.currentTurn + 1;
-    this.state.currentTurn = nextTurn > this.state.players.length - 1 ? 0 : nextTurn;  // Rotasi giliran
-    console.log(`Turn: Player ${this.state.players[this.state.currentTurn].name}`);
+    const nextTurn = this.state.turnPlayerId + 1;
+    this.state.turnPlayerId = nextTurn > this.state.players.length - 1 ? 0 : nextTurn;  // Rotasi giliran
     
+    if (this.allQuestionsAsked()) {
+      this.endGame();
+      return;
+    }
+
+    console.log(`Turn: Player ${this.state.players[this.state.turnPlayerId].name}`);
+
     this.state.currentQuestionId = this.getNextQuestionId();
+  }
+
+  allQuestionsAsked() {
+    const filteredQuestions = this.state.questions.filter(q => q.category === this.state.category.name);
+    return filteredQuestions.every(q => q.asked);
   }
 
   getNextQuestionId() {
     // Filter pertanyaan berdasarkan kategori yang sedang aktif
-    const filteredQuestions = this.state.questions.filter(question => question.category === this.state.currentCategory);
+    const filteredQuestions = this.state.questions.filter(question => question.category === this.state.category.name);
   
     // Urutkan pertanyaan berdasarkan urutan yang diinginkan, misalnya berdasarkan ID
     filteredQuestions.sort((a, b) => a.id - b.id);
@@ -119,13 +132,18 @@ export class WordCardRoom extends Room<WordCardGameState> {
   }
   
 
-  handleAnswer(client: Client, message: any) {
+  handleAnswer(client: Client, _: any) {
     const player = this.state.players.find(p => p.id === client.sessionId);
+    const playerIndex = this.state.players.findIndex(p => p.id === client.sessionId);
+
     if (!player) return;
+
+    if (playerIndex != this.state.turnPlayerId) return;
 
     const currentQuestion = this.state.questions.find(q => q.id === this.state.currentQuestionId);
     if (currentQuestion) {
       player.score += 10;
+      currentQuestion.asked = true; // Tandai pertanyaan sudah digunakan
     }
 
     this.setNextTurn();
@@ -136,6 +154,11 @@ export class WordCardRoom extends Room<WordCardGameState> {
     console.log("Game Over!");
 
     this.broadcast("gameEnded", { players: this.state.players });
+
+    // Bersihkan data & dispose room setelah delay
+    setTimeout(() => {
+      this.disconnect(); // Tutup room game
+    }, 5_000); // Tunggu 5 detik sebelum dispose
   }
 
   onDispose() {

@@ -7,20 +7,27 @@ export class Player extends Schema {
   @type("boolean") isReady: boolean = false;
 }
 
+export class Category extends Schema {
+  @type("number") id: number;
+  @type("string") name: string;
+}
+
 export class Question extends Schema {
   @type("number") id: number;
   @type("string") text: string;
   @type("string") category: string;
+  @type("boolean") asked: boolean = false;
 }
 
 export class WordCardGameState extends Schema {
   @type("string") roomId: string;
-  @type("string") currentCategory: string;
   @type("boolean") isGameStarted: boolean = false;
   @type("boolean") isGameEnded: boolean = false;
-  @type("number") currentTurn: number = 0;
+  @type("number") turnPlayerId: number = 0;
   @type("number") timer: number = 60;
   @type("number") currentQuestionId: number;
+
+  @type(Category) category: Category;
 
   @type({ array: Player }) players = new ArraySchema<Player>();
   @type({ array: Question }) questions = new ArraySchema<Question>();
