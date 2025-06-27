@@ -1,5 +1,5 @@
 # Stage 1: Build dependencies
-FROM node:16-alpine AS deps
+FROM node:18-alpine AS deps
 
 # Set working directory
 WORKDIR /app
@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Stage 2: Copy source and run
-FROM node:16-alpine AS runner
+FROM node:18-alpine AS runner
 
 ENV PORT=2567
 WORKDIR /app
