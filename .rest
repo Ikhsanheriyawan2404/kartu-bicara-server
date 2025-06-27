@@ -1,7 +1,25 @@
-GET http://localhost:3001/categories
+### request list category
+GET http://localhost:2567/categories
 
-###
-GET http://localhost:3001/questions
+### request list questions
+GET http://localhost:2567/questions
 
-###
-GET http://localhost:3001/questions/category/4
+### request single start game 
+POST http://localhost:2567/game/start
+Content-Type: application/json
+
+{
+  "categoryId": 1
+}
+
+### request create new question
+POST http://localhost:2567/questions
+Content-Type: application/json
+
+{
+  "categoryId": 2,
+  "question": "lorem ipsum dolor sit amet consectetur adipiscing elit"
+}
+
+### request total question
+GET http://localhost:2567/total_question

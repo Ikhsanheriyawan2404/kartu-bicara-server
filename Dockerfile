@@ -1,24 +1,26 @@
-FROM node:16
-
-# Set environment variable
-ENV PORT 2567
+# Stage 1: Build dependencies
+FROM node:16-alpine AS deps
 
 # Set working directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Copy package files
+# Copy only package files
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies (faster & cleaner)
 RUN npm ci
-# Uncomment this for production:
-# RUN npm ci --only=production
 
-# Copy the rest of the application code
+# Stage 2: Copy source and run
+FROM node:16-alpine AS runner
+
+ENV PORT=2567
+WORKDIR /app
+
+# Copy only needed files from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package*.json ./
 COPY . .
 
-# Expose the application port
 EXPOSE 2567
 
-# Start the application
-CMD [ "npm", "start" ]
+CMD ["npm", "start"]
