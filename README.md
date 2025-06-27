@@ -1,3 +1,6 @@
+> ⚠️ **DOKUMENTASI LAMA!** Untuk dokumentasi terbaru dan lengkap, silakan lihat di sini 👉 [📚 Dokumentasi Terbaru](https://github.com/Ikhsanheriyawan2404/kartu-bicara-ui/blob/main/README.md)
+
+
 # kartu-bicara
 
 ## 📌 Tentang Proyek Ini
