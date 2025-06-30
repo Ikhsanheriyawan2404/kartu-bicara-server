@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { redisClient } from "../config/redis";
+import { isRedisAvailable, redisClient } from "../config/redis";
 
 const WINDOW_SECONDS = 1;
 const MAX_REQUESTS = 2;
@@ -9,6 +9,10 @@ export async function rateLimiter(
   res: Response,
   next: NextFunction
 ): Promise<void> {
+  if (!isRedisAvailable()) {
+    return next();
+  }
+
   try {
     const ip = req.ip || req.connection.remoteAddress || "unknown";
     const key = `rate_limit:${ip}`;
