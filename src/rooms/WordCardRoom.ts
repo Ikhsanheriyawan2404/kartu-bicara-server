@@ -3,6 +3,7 @@ import { Category as SchemaCategory, Player, Question, WordCardGameState } from 
 import { categories, questions } from "./../data";
 import { Category } from "../types/Category";
 import { generateRoomCode } from "../utils";
+import { WordCardRoomOptions } from "../types/room";
 
 export class WordCardRoom extends Room<WordCardGameState> {
   public maxClients = 2;
@@ -10,10 +11,7 @@ export class WordCardRoom extends Room<WordCardGameState> {
   private categories = categories;
   private questions = questions;
 
-  onCreate (options: {
-    name: string,
-    categoryId: number,
-  }) {
+  onCreate (options: WordCardRoomOptions) {
 
     // set room ID 
     this.roomId = generateRoomCode();
@@ -28,17 +26,17 @@ export class WordCardRoom extends Room<WordCardGameState> {
     this.addQuestions(category);
     this.setGameCategories(category);
 
-    this.onMessage("answer", (client, message) => {
-      this.handleAnswer(client, message);
+    this.onMessage("answer", (client) => {
+      this.handleAnswer(client);
     });
   }
 
-  onJoin (client: Client, options: any) {
+  onJoin (client: Client, options: WordCardRoomOptions) {
     console.log(client.sessionId, "joined!");
 
     const player = new Player();
     player.id = client.sessionId;
-    player.name = options.name || `Player-${client.sessionId}`;
+    player.name = options.name || `User-${client.sessionId}`;
     player.score = 0;
     player.isReady = false;
 
@@ -49,7 +47,7 @@ export class WordCardRoom extends Room<WordCardGameState> {
     }
   }
 
-  onLeave (client: Client, consented: boolean) {
+  onLeave (client: Client) {
     console.log(client.sessionId, "left!");
 
     const index = this.state.players.findIndex(player => player.id === client.sessionId);
@@ -79,6 +77,8 @@ export class WordCardRoom extends Room<WordCardGameState> {
   
   getRandomQuestions(data: any[], n: number): any[] {
     const shuffled = [...data].sort(() => 0.5 - Math.random());
+    console.log({data})
+    console.log('apni', shuffled.slice(0, n))
     return shuffled.slice(0, n);
   }
 
@@ -136,7 +136,7 @@ export class WordCardRoom extends Room<WordCardGameState> {
   }
   
 
-  handleAnswer(client: Client, _: any) {
+  handleAnswer(client: Client) {
     const player = this.state.players.find(p => p.id === client.sessionId);
     const playerIndex = this.state.players.findIndex(p => p.id === client.sessionId);
 
