@@ -23,7 +23,7 @@ export class WordCardGameState extends Schema {
   @type("string") roomId: string;
   @type("boolean") isGameStarted: boolean = false;
   @type("boolean") isGameEnded: boolean = false;
-  @type("number") turnPlayerId: number = 0;
+  @type("number") turnPlayerId: number = 1;
   @type("number") timer: number = 60;
   @type("number") currentQuestionId: number;
 

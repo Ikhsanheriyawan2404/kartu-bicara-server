@@ -1,34 +1,40 @@
 import { Room, Client } from "@colyseus/core";
-import { Category as SchemaCategory, Player, Question, WordCardGameState } from "./schema/WordCardGameState";
-import { categories, questions } from "./../data";
-import { Category } from "../types/Category";
+import { Category as SchemaCategory, Player, WordCardGameState, Question as SchemaQuestion } from "./schema/WordCardGameState";
 import { generateRoomCode } from "../utils";
 import { WordCardRoomOptions } from "../types/room";
+import { getCategoryById, getRandomQuestions } from "../db";
+import { Category } from "../types/Category";
+import { Question } from "../types/Question";
 
 export class WordCardRoom extends Room<WordCardGameState> {
   public maxClients = 2;
   private maxQuestions = 10;
-  private categories = categories;
-  private questions = questions;
 
-  onCreate (options: WordCardRoomOptions) {
+  private category: Category;
+  private questions: Question[] = [];
 
-    // set room ID 
+  async onCreate(options: WordCardRoomOptions) {
     this.roomId = generateRoomCode();
-
-    const category: Category = this.categories.find(c => c.id === options.categoryId);
-    if (!category) {
-      throw new Error("Invalid category: You cannot join this room.");
-    }
-
     this.setState(new WordCardGameState());
-    
-    this.addQuestions(category);
-    this.setGameCategories(category);
+
+    await this.safeInit(options);
+
+    this.addQuestions(this.questions);
+    this.setGameCategories(this.category);
 
     this.onMessage("answer", (client) => {
       this.handleAnswer(client);
     });
+  }
+
+  private async safeInit(options: WordCardRoomOptions) {
+    const category = await getCategoryById(options.categoryId);
+    if (!category) {
+      throw new Error("Invalid category");
+    }
+    this.category = category;
+
+    this.questions = await getRandomQuestions(this.category.id, this.maxQuestions);
   }
 
   onJoin (client: Client, options: WordCardRoomOptions) {
@@ -60,26 +66,11 @@ export class WordCardRoom extends Room<WordCardGameState> {
     }
   }
 
-  addQuestions(category: Category) {
-    const questions = this.questions
-      .filter(question => question.category_id === category.id)
-      .map((question, index) => ({
-        id: index,
-        text: question.text,
-        category: category.name
-      }));
-
-    const randomData = this.getRandomQuestions(questions, this.maxQuestions);
-    randomData.forEach(data => {
-      this.state.questions.push(new Question(data));
+  addQuestions(questions: Question[]) {
+    questions.forEach(question => {
+      question.category = this.category.name
+      this.state.questions.push(new SchemaQuestion(question));
     });
-  }
-  
-  getRandomQuestions(data: any[], n: number): any[] {
-    const shuffled = [...data].sort(() => 0.5 - Math.random());
-    console.log({data})
-    console.log('apni', shuffled.slice(0, n))
-    return shuffled.slice(0, n);
   }
 
   setGameCategories(category: Category) {
@@ -143,6 +134,7 @@ export class WordCardRoom extends Room<WordCardGameState> {
     if (!player) return;
 
     if (playerIndex != this.state.turnPlayerId) return;
+    if (!this.state.isGameStarted) return
 
     const currentQuestion = this.state.questions.find(q => q.id === this.state.currentQuestionId);
     if (currentQuestion) {
@@ -163,6 +155,10 @@ export class WordCardRoom extends Room<WordCardGameState> {
     setTimeout(() => {
       this.disconnect(); // Tutup room game
     }, 5_000); // Tunggu 5 detik sebelum dispose
+  }
+
+  onUncaughtException(err: Error, methodName: string) {
+    console.error(`❌ Exception in ${methodName}:`, err);
   }
 
   onDispose() {
