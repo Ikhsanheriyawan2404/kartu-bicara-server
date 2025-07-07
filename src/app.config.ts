@@ -1,6 +1,5 @@
 import config from "@colyseus/tools";
 import { monitor } from "@colyseus/monitor";
-import { playground } from "@colyseus/playground";
 import { buildValidationPrompt, validateWithAI } from "./utils";
 
 /**
@@ -9,6 +8,7 @@ import { buildValidationPrompt, validateWithAI } from "./utils";
 import { WordCardRoom } from "./rooms/WordCardRoom";
 import { pool } from "./config/db";
 import { rateLimiter } from "./middleware/rateLimiter";
+import { playground } from "@colyseus/playground";
 
 export default config({
     
@@ -164,7 +164,7 @@ export default config({
         * (It is not recommended to expose this route in a production environment)
         */
         if (process.env.NODE_ENV !== "production") {
-            app.use("/", playground);
+            app.use("/", playground());
         }
         
         /**
