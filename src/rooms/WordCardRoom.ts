@@ -2,6 +2,7 @@ import { Room, Client } from "@colyseus/core";
 import { Category as SchemaCategory, Player, Question, WordCardGameState } from "./schema/WordCardGameState";
 import { categories, questions } from "./../data";
 import { Category } from "../types/Category";
+import { generateRoomCode } from "../utils";
 
 export class WordCardRoom extends Room<WordCardGameState> {
   public maxClients = 2;
@@ -13,6 +14,9 @@ export class WordCardRoom extends Room<WordCardGameState> {
     name: string,
     categoryId: number,
   }) {
+
+    // set room ID 
+    this.roomId = generateRoomCode();
 
     const category: Category = this.categories.find(c => c.id === options.categoryId);
     if (!category) {

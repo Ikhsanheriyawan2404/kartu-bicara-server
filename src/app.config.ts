@@ -1,7 +1,7 @@
 import config from "@colyseus/tools";
 import { monitor } from "@colyseus/monitor";
 import { playground } from "@colyseus/playground";
-import { buildValidationPrompt, validateWithAI } from "./utlis";
+import { buildValidationPrompt, validateWithAI } from "./utils";
 
 /**
 * Import your Room files

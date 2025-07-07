@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 const LLM_URL = process.env.LLM_URL;
 const LLM_API_KEY = process.env.LLM_API_KEY;
 const LLM_MODEL = process.env.LLM_MODEL;
@@ -62,4 +64,27 @@ export async function validateWithAI(prompt: string): Promise<{
         isValid: parsed.is_valid,
         reason: parsed.alasan,
     };
+}
+
+/**
+ * Generate a random, human-friendly room code.
+ *
+ * @param length - The length of the room code. Default: 6.
+ * @param alphabet - Allowed characters. Default: A–Z (except I/O) and 2–9.
+ * @returns A unique random room code.
+ */
+export function generateRoomCode(
+    length: number = 6,
+    alphabet: string = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+): string {
+    const codeChars: string[] = [];
+    const bytes: Buffer = crypto.randomBytes(length);
+    const alphaLen = alphabet.length;
+
+    for (let i = 0; i < length; i++) {
+        const idx = bytes[i] % alphaLen;
+        codeChars.push(alphabet[idx]);
+    }
+
+    return codeChars.join("");
 }
