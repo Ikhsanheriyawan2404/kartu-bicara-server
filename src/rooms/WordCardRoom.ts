@@ -15,7 +15,8 @@ export class WordCardRoom extends Room<WordCardGameState> {
 
   async onCreate(options: WordCardRoomOptions) {
     this.roomId = generateRoomCode();
-    this.setState(new WordCardGameState());
+    
+    this.state = new WordCardGameState();
 
     await this.safeInit(options);
 
