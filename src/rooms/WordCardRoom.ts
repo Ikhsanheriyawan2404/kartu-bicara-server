@@ -26,6 +26,10 @@ export class WordCardRoom extends Room<WordCardGameState> {
     this.onMessage("answer", (client) => {
       this.handleAnswer(client);
     });
+
+    this.onMessage("card-flip", (_, message) => {
+      this.state.isCardFlipped = message.isCardFlipped;
+    });
   }
 
   private async safeInit(options: WordCardRoomOptions) {

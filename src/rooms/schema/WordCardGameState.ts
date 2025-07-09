@@ -26,6 +26,7 @@ export class WordCardGameState extends Schema {
   @type("number") turnPlayerId: number = 1;
   @type("number") timer: number = 60;
   @type("number") currentQuestionId: number;
+  @type("boolean") isCardFlipped: boolean = false;
 
   @type(Category) category: Category;
 
